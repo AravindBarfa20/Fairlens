@@ -132,14 +132,14 @@ export function AnimatedLanding() {
   ];
 
   useEffect(() => {
-    let i = 0;
     const timer = setInterval(() => {
-      if (i < fullLines.length) {
-        setTerminalLines((prev) => [...prev, fullLines[i]]);
-        i++;
-      } else {
-        clearInterval(timer);
-      }
+      setTerminalLines((prev) => {
+        if (prev.length >= fullLines.length) {
+          clearInterval(timer);
+          return prev;
+        }
+        return [...prev, fullLines[prev.length]];
+      });
     }, 600);
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -436,10 +436,10 @@ export function AnimatedLanding() {
                     </div>
                     <span className="text-neutral-600 text-[9px]">fairlens audit</span>
                   </div>
-                  {terminalLines.map((line, i) => (
+                  {terminalLines.filter(Boolean).map((line, i) => (
                     <div key={i} className="flex gap-2 leading-relaxed">
                       <span className="text-neutral-600 select-none w-4 text-right">{String(i + 1).padStart(2, "0")}</span>
-                      <span className={line.includes("✓") ? "text-green-400" : line.includes("⚠") ? "text-yellow-400" : "text-neutral-400"}>
+                      <span className={line?.includes("✓") ? "text-green-400" : line?.includes("⚠") ? "text-yellow-400" : "text-neutral-400"}>
                         {line}
                       </span>
                     </div>
