@@ -282,7 +282,7 @@ export function AnimatedLanding() {
 
         {/* Floating glass cards */}
         <motion.div
-          className="hidden xl:block absolute left-4 2xl:left-12 top-[8%] w-64 z-0"
+          className="hidden xl:block absolute left-4 2xl:left-12 top-[16%] w-64 z-0"
           animate={{ y: [0, -15, 0] }}
           transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
           style={{ transform: `translate(${mouseX * -0.5}px, ${mouseY * -0.5}px)` }}
