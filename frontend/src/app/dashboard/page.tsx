@@ -1,136 +1,87 @@
 "use client";
 
-import { analyzeDataset } from "@/app/actions/analyze";
+import { motion } from "framer-motion";
 import { ReportView } from "@/components/ReportView";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { UploadDropzone } from "@/components/ui/UploadDropzone";
 import { useBiasReport } from "@/store/useBiasReport";
-import { AlertTriangle, RotateCcw } from "lucide-react";
 
 export default function DashboardPage() {
-  const {
-    status,
-    errorMessage,
-    reset,
-    setFile,
-    setStatus,
-    setMetrics,
-    appendReportStream,
-    setErrorMessage,
-  } = useBiasReport();
+  const { status, setFile, setStatus, setMetrics, appendReportStream } = useBiasReport();
 
   const handleFileUpload = async (file: File) => {
-    reset();
-    setFile(file);
-    setStatus("analyzing");
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const { data: realMetrics, error } = await analyzeDataset(formData);
-
-    if (error || !realMetrics) {
-      setErrorMessage(error || "Unknown error occurred during analysis.");
-      return;
-    }
-
-    setMetrics(realMetrics);
-    setStatus("complete");
-
     try {
-      const res = await fetch("/api/report", {
+      setFile(file);
+      setStatus("analyzing");
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("http://127.0.0.1:8000/analyze", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`FastAPI returned status ${response.status}`);
+      }
+
+      const realMetrics = await response.json();
+
+      if (realMetrics.error) {
+        throw new Error(realMetrics.error);
+      }
+
+      setMetrics(realMetrics);
+      setStatus("complete");
+
+      const aiResponse = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ metrics: realMetrics }),
       });
 
-      if (!res.ok || !res.body) {
-        throw new Error("AI stream request failed");
-      }
+      if (!aiResponse.body) return;
 
-      const reader = res.body.getReader();
+      const reader = aiResponse.body.getReader();
       const decoder = new TextDecoder();
-      let buffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n").filter((line) => line.startsWith("0:"));
         for (const line of lines) {
-          if (!line.startsWith("0:")) continue;
           try {
             const text = JSON.parse(line.slice(2));
             appendReportStream(text);
           } catch {
-            // partial chunk — skip
+            // ignore partial chunk
           }
         }
       }
-
-      buffer += decoder.decode();
-      for (const line of buffer.split("\n")) {
-        if (!line.startsWith("0:")) continue;
-        try {
-          const text = JSON.parse(line.slice(2));
-          appendReportStream(text);
-        } catch {
-          // skip
-        }
-      }
-    } catch (streamError) {
-      console.error("AI Stream failed:", streamError);
-      appendReportStream("\n\n[AI insights could not be fully generated.]");
+    } catch (err: any) {
+      console.error("Analysis Error:", err);
+      setStatus("idle");
+      alert(`Analysis Failed: ${err.message || "Could not process CSV"}`);
     }
   };
 
   return (
-    <div className="w-full space-y-8">
-      {/* IDLE — Upload */}
+    <div className="animate-in fade-in slide-in-from-bottom-4 w-full space-y-8 duration-700">
       {status === "idle" && (
-        <div className="animate-in slide-in-from-bottom-4 fade-in space-y-8 duration-700">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl space-y-8">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight text-white">
-              Audit New Dataset
-            </h1>
-            <p className="text-neutral-400">
-              Upload your HR or applicant CSV to detect hidden biases.
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Audit Workspace</h1>
+            <p className="text-neutral-400">Upload your CSV dataset directly to the AIF360 engine.</p>
           </div>
-
-          <GlassCard className="max-w-2xl">
+          <div className="rounded-2xl border border-white/10 bg-[#050505]/50 p-8 shadow-2xl backdrop-blur-xl">
             <UploadDropzone onFileSelect={handleFileUpload} />
-          </GlassCard>
-        </div>
+          </div>
+        </motion.div>
       )}
 
-      {/* ERROR — Show error with retry */}
-      {status === "error" && (
-        <div className="animate-in fade-in space-y-6 duration-500 max-w-2xl">
-          <GlassCard className="flex flex-col items-center gap-4 p-10 text-center">
-            <div className="rounded-full bg-red-500/10 p-3 ring-1 ring-red-500/20">
-              <AlertTriangle className="h-6 w-6 text-red-400" />
-            </div>
-            <div className="space-y-1">
-              <h2 className="text-lg font-semibold text-white">Analysis Failed</h2>
-              <p className="text-sm text-neutral-400">{errorMessage}</p>
-            </div>
-            <button
-              onClick={reset}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/5 px-5 py-2.5 text-sm font-medium text-white ring-1 ring-white/10 transition-all hover:bg-white/10"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Try Again
-            </button>
-          </GlassCard>
-        </div>
-      )}
-
-      {/* ANALYZING / COMPLETE — Show report */}
-      {(status === "analyzing" || status === "complete") && <ReportView />}
+      {status !== "idle" && <ReportView />}
     </div>
   );
 }
