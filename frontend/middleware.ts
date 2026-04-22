@@ -1,8 +1,8 @@
 // frontend/middleware.ts
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Protect all routes except the public landing page and sign-in/up
-const isPublicRoute = createRouteMatcher(["/", "/sign-in(.*)", "/sign-up(.*)"]);
+// Added /sandbox to public routes for UI testing
+const isPublicRoute = createRouteMatcher(["/", "/sandbox", "/sign-in(.*)", "/sign-up(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) await auth.protect();
