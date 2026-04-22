@@ -1,11 +1,19 @@
-// frontend/middleware.ts
+// frontend/src/middleware.ts
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Added /sandbox to public routes for UI testing
-const isPublicRoute = createRouteMatcher(["/", "/sandbox", "/sign-in(.*)", "/sign-up(.*)"]);
+// Public: landing, sandbox, API routes (streaming must not require cookie)
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/sandbox",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/report(.*)",
+]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) await auth.protect();
+  if (!isPublicRoute(req)) {
+    await auth.protect();
+  }
 });
 
 export const config = {
