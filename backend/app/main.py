@@ -41,6 +41,18 @@ def _coerce_binary_column(df: pd.DataFrame, column: str) -> tuple[pd.DataFrame, 
     return encoded, mapping
 
 
+def _encode_all_categoricals(df: pd.DataFrame) -> pd.DataFrame:
+    """Label-encode every remaining object/category column so AIF360 gets a fully numeric DataFrame."""
+    encoded = df.copy()
+    for col in encoded.select_dtypes(include=["object", "category", "bool"]).columns:
+        series = encoded[col].fillna("missing").astype(str).str.strip()
+        le = LabelEncoder()
+        encoded[col] = le.fit_transform(series)
+    # Fill any remaining NaN values
+    encoded = encoded.fillna(0)
+    return encoded
+
+
 def _to_float(value: float) -> float:
     if value is None or not math.isfinite(value):
         return 0.0
@@ -70,6 +82,10 @@ async def analyze_csv(
         if df.empty:
             raise ValueError("Uploaded CSV is empty.")
 
+        # Drop columns that are purely identifiers (unique per row)
+        id_cols = [c for c in df.columns if df[c].nunique() == len(df) and df[c].dtype == "object"]
+        df = df.drop(columns=id_cols, errors="ignore")
+
         if not target_col or target_col not in df.columns:
             target_col = df.columns[-1]
 
@@ -88,8 +104,12 @@ async def analyze_csv(
         if target_col == protected_col:
             raise ValueError("Target and protected columns must be different.")
 
+        # Encode target + protected first (so we can capture their mappings)
         encoded_df, target_mapping = _coerce_binary_column(df, target_col)
         encoded_df, protected_mapping = _coerce_binary_column(encoded_df, protected_col)
+
+        # Encode ALL remaining categorical columns
+        encoded_df = _encode_all_categoricals(encoded_df)
 
         favorable_label = 1 if encoded_df[target_col].nunique() > 1 else 0
         privileged_val = 1 if encoded_df[protected_col].nunique() > 1 else 0
@@ -126,4 +146,6 @@ async def analyze_csv(
             },
         }
     except Exception as exc:
+        import traceback
+        traceback.print_exc()
         return {"error": str(exc), "message": "Failed to parse dataset."}
