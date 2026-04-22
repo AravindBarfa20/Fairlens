@@ -22,7 +22,7 @@ import {
   Activity,
   Sparkles,
 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 /* ─────────── sub-components ─────────── */
 
@@ -96,18 +96,17 @@ export function AnimatedLanding() {
   const [mouseX, setMouseX] = useState(0);
   const [mouseY, setMouseY] = useState(0);
   const [session, setSession] = useState<any>(null);
+  const supabase = createClient();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: s } }) => setSession(s));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
     return () => subscription.unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
+  const handleLogin = () => {
+    window.location.href = "/login";
   };
 
   useEffect(() => {
