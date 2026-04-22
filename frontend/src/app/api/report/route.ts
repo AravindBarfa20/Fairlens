@@ -122,7 +122,7 @@ Keep it professional, 200 words max. Do not use markdown formatting or bullet po
 
 function generateFallbackReport(metrics: any): string {
   if (!metrics)
-    return "Unable to generate AI analysis. Please verify your GLM_API_KEY in .env.local.";
+    return "Unable to generate analysis. Please ensure the backend engine is running.";
 
   const di = metrics.disparateImpact ?? 1.0;
   const dpd = metrics.demographicParityDifference ?? 0;
@@ -148,5 +148,5 @@ RECOMMENDED ACTIONS:
 2. ${biased ? "Bias Mitigation: Apply preprocessing techniques (reweighing, disparate impact remover) or in-processing constraints (adversarial debiasing) before model deployment" : "Documentation: Archive this audit result for SOC2/EEOC/EU AI Act compliance records"}
 3. ${biased ? "Legal Review: Consult compliance counsel before deploying affected models to production" : "Scope Expansion: Extend audits to additional protected attributes (age, disability, ethnicity)"}
 
-This report was generated locally. For AI-powered natural language analysis, configure a valid GLM_API_KEY.`;
+*** End of Report ***`;
 }

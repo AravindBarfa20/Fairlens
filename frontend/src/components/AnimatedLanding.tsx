@@ -401,7 +401,7 @@ export function AnimatedLanding() {
                 <Sparkles className="w-5 h-5 text-white/60" />
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">AI Explainability</h3>
-              <p className="text-sm text-neutral-500 leading-relaxed mb-3">GLM 5.1 streams plain-English explanations of every bias pattern detected.</p>
+              <p className="text-sm text-neutral-500 leading-relaxed mb-3">The analysis engine streams plain-English explanations of every bias pattern detected.</p>
               <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3 text-xs text-neutral-400 italic">
                 &quot;The gender attribute shows a statistically significant disparity in selection rates (p &lt; 0.01).&quot;
               </div>
