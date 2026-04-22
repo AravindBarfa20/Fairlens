@@ -225,7 +225,7 @@ export function AnimatedLanding() {
               <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
             </span>
-            Powered by AIF360 & GLM 5.1
+            Powered by AIF360 Math Engine
           </motion.div>
 
           {/* Headline */}
@@ -247,7 +247,7 @@ export function AnimatedLanding() {
             transition={{ delay: 0.6 }}
             className="mt-6 max-w-2xl text-lg md:text-xl text-neutral-400 leading-relaxed"
           >
-            Upload a dataset. Get 15+ fairness metrics in seconds. Stream AI-powered explanations of every bias pattern — no statistics degree required.
+            Upload a dataset. Get 15+ fairness metrics in seconds. Stream plain-English explanations of every bias pattern — no statistics degree required.
           </motion.p>
 
           {/* CTAs */}

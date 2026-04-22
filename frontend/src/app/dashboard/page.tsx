@@ -6,7 +6,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { UploadDropzone } from "@/components/ui/UploadDropzone";
 import { useBiasReport } from "@/store/useBiasReport";
 import { createClient } from "@/lib/supabase/client";
-import { AlertTriangle, RotateCcw, Sparkles } from "lucide-react";
+import { AlertTriangle, RotateCcw, Sparkles, ShieldCheck, Lock, Activity } from "lucide-react";
 import { toast } from "sonner";
 
 export default function DashboardPage() {
@@ -154,19 +154,46 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <GlassCard className="max-w-2xl flex flex-col items-center p-8">
-            <UploadDropzone onFileSelect={handleFileUpload} className="w-full" />
+          <div className="relative max-w-2xl">
+            {/* Glowing orb background effect for UI juice */}
+            <div className="absolute inset-0 -z-10 translate-y-12 blur-[100px] bg-cyan-500/10 rounded-full" />
             
-            <div className="mt-8 flex items-center justify-center w-full">
-              <button 
-                onClick={loadSampleDataset} 
-                className="flex items-center gap-2 text-sm font-medium dark:text-cyan-400 text-cyan-600 dark:hover:text-cyan-300 transition-colors border dark:border-cyan-500/30 border-cyan-500/20 dark:bg-cyan-500/10 bg-cyan-50 px-5 py-2.5 rounded-full dark:hover:bg-cyan-500/20 hover:bg-cyan-100"
-              >
-                <Sparkles className="w-4 h-4" />
-                No CSV? Load 1-Click Sample Biased Dataset
-              </button>
+            <GlassCard className="flex flex-col items-center p-8">
+              <UploadDropzone onFileSelect={handleFileUpload} className="w-full" />
+              
+              <div className="mt-8 flex items-center justify-center w-full">
+                <button 
+                  onClick={loadSampleDataset} 
+                  className="flex items-center gap-2 text-sm font-medium dark:text-cyan-400 text-cyan-600 dark:hover:text-cyan-300 transition-colors border dark:border-cyan-500/30 border-cyan-500/20 dark:bg-cyan-500/10 bg-cyan-50 px-5 py-2.5 rounded-full dark:hover:bg-cyan-500/20 hover:bg-cyan-100"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  No CSV? Load 1-Click Sample Biased Dataset
+                </button>
+              </div>
+            </GlassCard>
+
+            {/* Trust Badges bottom */}
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { icon: ShieldCheck, title: "EEOC Compliant", desc: "Maps to Uniform Guidelines" },
+                { icon: Lock, title: "Zero Retention", desc: "Data is dropped post-audit" },
+                { icon: Activity, title: "Real-Time Math", desc: "Powered by strict AIF360" }
+              ].map((badge, idx) => {
+                const Icon = badge.icon;
+                return (
+                  <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl border border-white/5 bg-white/[0.01]">
+                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-neutral-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">{badge.title}</p>
+                      <p className="text-xs text-neutral-500">{badge.desc}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </GlassCard>
+          </div>
         </motion.div>
       )}
 
