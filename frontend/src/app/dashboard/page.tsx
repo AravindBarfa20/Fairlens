@@ -2,14 +2,24 @@
 
 import { motion } from "framer-motion";
 import { ReportView } from "@/components/ReportView";
+import { GlassCard } from "@/components/ui/GlassCard";
 import { UploadDropzone } from "@/components/ui/UploadDropzone";
 import { useBiasReport } from "@/store/useBiasReport";
 
 export default function DashboardPage() {
-  const { status, setFile, setStatus, setMetrics, appendReportStream } = useBiasReport();
+  const {
+    status,
+    reset,
+    setFile,
+    setStatus,
+    setMetrics,
+    appendReportStream,
+    setErrorMessage,
+  } = useBiasReport();
 
   const handleFileUpload = async (file: File) => {
     try {
+      reset();
       setFile(file);
       setStatus("analyzing");
 
@@ -60,24 +70,34 @@ export default function DashboardPage() {
           }
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Analysis Error:", err);
-      setStatus("idle");
-      alert(`Analysis Failed: ${err.message || "Could not process CSV"}`);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Could not process CSV"
+      );
     }
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 w-full space-y-8 duration-700">
+    <div className="space-y-8">
       {status === "idle" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl space-y-8">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="animate-in slide-in-from-bottom-4 fade-in space-y-8 duration-700"
+        >
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight text-white">Audit Workspace</h1>
-            <p className="text-neutral-400">Upload your CSV dataset directly to the AIF360 engine.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-white">
+              Audit New Dataset
+            </h1>
+            <p className="text-neutral-400">
+              Upload your HR or applicant CSV to detect hidden biases.
+            </p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-[#050505]/50 p-8 shadow-2xl backdrop-blur-xl">
+
+          <GlassCard className="max-w-2xl">
             <UploadDropzone onFileSelect={handleFileUpload} />
-          </div>
+          </GlassCard>
         </motion.div>
       )}
 
