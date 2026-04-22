@@ -1,9 +1,11 @@
-// frontend/src/app/page.tsx
 import { Button } from "@/components/ui/Button";
-import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
+import { SignInButton } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 
-export default function Home() {
+export default async function Home() {
+  const { userId } = await auth();
+
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-6 text-center">
       <div className="relative z-10 max-w-3xl space-y-8">
@@ -17,19 +19,17 @@ export default function Home() {
         </p>
 
         <div className="flex flex-col items-center justify-center gap-4 pt-4 sm:flex-row">
-          <SignedOut>
+          {!userId ? (
             <SignInButton mode="modal">
               <button className="relative flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 font-medium text-black transition-colors hover:bg-neutral-200">
                 Get Started Securely
               </button>
             </SignInButton>
-          </SignedOut>
-          
-          <SignedIn>
+          ) : (
             <Link href="/dashboard">
               <Button variant="primary">Go to Dashboard</Button>
             </Link>
-          </SignedIn>
+          )}
 
           <Link href="/sandbox">
             <Button variant="secondary">View Components</Button>

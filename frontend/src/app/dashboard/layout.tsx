@@ -7,18 +7,18 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--background)]">
-      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-white/5 bg-[#050505]/80 px-6 py-4 backdrop-blur-xl">
+    <div className="min-h-screen bg-[var(--background)] flex flex-col">
+      <header className="border-b border-white/5 bg-[#050505]/80 backdrop-blur-xl px-6 py-4 flex items-center justify-between sticky top-0 z-50">
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 text-xl font-bold tracking-tight text-white"
+          className="text-xl font-bold tracking-tight text-white flex items-center gap-2"
         >
           FairLens{" "}
           <span className="text-sm font-normal text-neutral-500">Workspace</span>
         </Link>
-        <UserButton afterSignOutUrl="/" />
+        <UserButton />
       </header>
-      <main className="mx-auto flex-1 w-full max-w-7xl p-6 md:p-10">{children}</main>
+      <main className="flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full">{children}</main>
     </div>
   );
 }
