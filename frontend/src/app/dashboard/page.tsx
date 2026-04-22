@@ -65,18 +65,19 @@ export default function DashboardPage() {
         if (aiResponse.body) {
           const reader = aiResponse.body.getReader();
           const decoder = new TextDecoder();
-          let buffer = "";
+          let rawText = "";
 
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
+            rawText += decoder.decode(value, { stream: true });
+          }
+          rawText += decoder.decode();
 
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop() ?? "";
-
-            for (const line of lines) {
-              if (!line.startsWith("0:")) continue;
+          // Try parsing as SSE stream (lines like "0:\"text\"")
+          const sseLines = rawText.split("\n").filter((l) => l.startsWith("0:"));
+          if (sseLines.length > 0) {
+            for (const line of sseLines) {
               try {
                 const text = JSON.parse(line.slice(2));
                 appendReportStream(text);
@@ -85,19 +86,10 @@ export default function DashboardPage() {
                 // partial chunk
               }
             }
-          }
-
-          // Flush remaining buffer
-          buffer += decoder.decode();
-          for (const line of buffer.split("\n")) {
-            if (!line.startsWith("0:")) continue;
-            try {
-              const text = JSON.parse(line.slice(2));
-              appendReportStream(text);
-              fullExplanation += text;
-            } catch {
-              // skip
-            }
+          } else {
+            // Plain text fallback response
+            appendReportStream(rawText);
+            fullExplanation = rawText;
           }
         }
       } catch (streamError) {
