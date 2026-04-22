@@ -50,7 +50,7 @@ export function ReportView() {
 
         <GlassCard className="p-8">
           <h3 className="mb-6 border-b border-white/10 pb-4 text-xl font-semibold text-white">
-            GLM 5.1 Explainability Report
+            AI Explainability Report
           </h3>
           <div className="prose prose-invert max-w-none whitespace-pre-wrap text-neutral-300 leading-relaxed">
             {reportStream || "Awaiting AI insights..."}
