@@ -1,73 +1,80 @@
 "use client";
 
+import { analyzeDataset } from "@/app/actions/analyze";
 import { ReportView } from "@/components/ReportView";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { UploadDropzone } from "@/components/ui/UploadDropzone";
 import { useBiasReport } from "@/store/useBiasReport";
 
 export default function DashboardPage() {
-  const { status, reset, setFile, setStatus, setMetrics, appendReportStream } =
-    useBiasReport();
+  const {
+    status,
+    reset,
+    setFile,
+    setStatus,
+    setMetrics,
+    appendReportStream,
+    setErrorMessage,
+  } = useBiasReport();
 
   const handleFileUpload = async (file: File) => {
     reset();
     setFile(file);
     setStatus("analyzing");
 
-    const mockMetrics = {
-        targetColumn: "Hiring_Decision",
-        protectedAttribute: "Gender",
-        disparateImpact: 0.72,
-        demographicParityDifference: -0.18,
-        isBiased: true,
-        flaggedFeatures: ["Gender", "Zip_Code"],
-      };
+    const formData = new FormData();
+    formData.append("file", file);
 
-    setTimeout(async () => {
-      setMetrics(mockMetrics);
-      setStatus("complete");
+    const { data: realMetrics, error } = await analyzeDataset(formData);
 
-      try {
-        const res = await fetch("/api/report", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ metrics: mockMetrics }),
-        });
+    if (error || !realMetrics) {
+      setErrorMessage(error || "Unknown error occurred during analysis.");
+      return;
+    }
 
-        if (!res.ok || !res.body) {
-          throw new Error("AI stream request failed");
-        }
+    setMetrics(realMetrics);
+    setStatus("complete");
 
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
+    try {
+      const res = await fetch("/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ metrics: realMetrics }),
+      });
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+      if (!res.ok || !res.body) {
+        throw new Error("AI stream request failed");
+      }
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
 
-          for (const line of lines) {
-            if (!line.startsWith("0:")) continue;
-            const text = JSON.parse(line.slice(2));
-            appendReportStream(text);
-          }
-        }
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-        buffer += decoder.decode();
-        for (const line of buffer.split("\n")) {
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
           if (!line.startsWith("0:")) continue;
           const text = JSON.parse(line.slice(2));
           appendReportStream(text);
         }
-      } catch (error) {
-        console.error("AI Stream failed:", error);
-        appendReportStream("Failed to generate AI insights.");
       }
-    }, 2000);
+
+      buffer += decoder.decode();
+      for (const line of buffer.split("\n")) {
+        if (!line.startsWith("0:")) continue;
+        const text = JSON.parse(line.slice(2));
+        appendReportStream(text);
+      }
+    } catch (streamError) {
+      console.error("AI Stream failed:", streamError);
+      appendReportStream("Failed to generate AI insights.");
+    }
   };
 
   return (
