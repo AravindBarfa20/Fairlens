@@ -1,0 +1,28 @@
+# Node
+node_modules/
+.pnp
+.pnp.js
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+backend/venv/
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Production
+build/
+
+# OS/Misc
+.DS_Store
+*.pem
+
+# Secrets (CRITICAL)
+.env
+.env.local
+.env.*.local
