@@ -6,7 +6,8 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { UploadDropzone } from "@/components/ui/UploadDropzone";
 import { useBiasReport } from "@/store/useBiasReport";
 import { createClient } from "@/lib/supabase/client";
-import { AlertTriangle, RotateCcw } from "lucide-react";
+import { AlertTriangle, RotateCcw, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
   const {
@@ -117,6 +118,21 @@ export default function DashboardPage() {
       setErrorMessage(
         err instanceof Error ? err.message : "Could not process CSV"
       );
+      toast.error(err instanceof Error ? err.message : "Could not process CSV");
+    }
+  };
+
+  const loadSampleDataset = async () => {
+    try {
+      toast.loading("Fetching sample biased dataset...", { id: "sample" });
+      const res = await fetch('/sample_biased.csv');
+      const blob = await res.blob();
+      const demoFile = new File([blob], "sample_biased_hr.csv", { type: "text/csv" });
+      toast.dismiss("sample");
+      toast.success("Dataset loaded successfully!");
+      handleFileUpload(demoFile);
+    } catch (e) {
+      toast.error("Failed to load sample data.");
     }
   };
 
@@ -138,8 +154,18 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <GlassCard className="max-w-2xl">
-            <UploadDropzone onFileSelect={handleFileUpload} />
+          <GlassCard className="max-w-2xl flex flex-col items-center p-8">
+            <UploadDropzone onFileSelect={handleFileUpload} className="w-full" />
+            
+            <div className="mt-8 flex items-center justify-center w-full">
+              <button 
+                onClick={loadSampleDataset} 
+                className="flex items-center gap-2 text-sm font-medium dark:text-cyan-400 text-cyan-600 dark:hover:text-cyan-300 transition-colors border dark:border-cyan-500/30 border-cyan-500/20 dark:bg-cyan-500/10 bg-cyan-50 px-5 py-2.5 rounded-full dark:hover:bg-cyan-500/20 hover:bg-cyan-100"
+              >
+                <Sparkles className="w-4 h-4" />
+                No CSV? Load 1-Click Sample Biased Dataset
+              </button>
+            </div>
           </GlassCard>
         </motion.div>
       )}

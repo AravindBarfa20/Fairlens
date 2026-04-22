@@ -77,10 +77,17 @@ async def analyze_csv(
 ):
     try:
         contents = await file.read()
+        
+        # Guardrails: file size and format
+        if len(contents) > 50 * 1024 * 1024:
+            raise ValueError("File too large. Maximum allowed size is 50MB.")
+        if not file.filename.endswith('.csv'):
+            raise ValueError("File must be a CSV format.")
+
         df = _read_csv_with_fallbacks(contents)
 
-        if df.empty:
-            raise ValueError("Uploaded CSV is empty.")
+        if df.empty or len(df.columns) < 2:
+            raise ValueError("CSV must contain at least 2 columns and 1 row of data.")
 
         # Drop columns that are purely identifiers (unique per row)
         id_cols = [c for c in df.columns if df[c].nunique() == len(df) and df[c].dtype == "object"]
