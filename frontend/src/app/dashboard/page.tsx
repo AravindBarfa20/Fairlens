@@ -165,7 +165,8 @@ export default function DashboardPage() {
             <GlassCard className="flex flex-col items-center p-8">
               <UploadDropzone onFileSelect={handleFileUpload} className="w-full" />
               
-              <div className="mt-8 flex items-center justify-center w-full">
+              <div className="mt-8 flex flex-col items-center justify-center w-full gap-4">
+                <p className="text-xs text-neutral-500">CSV files only (Max 4.5MB)</p>
                 <button 
                   onClick={loadSampleDataset} 
                   className="flex items-center gap-2 text-sm font-medium dark:text-cyan-400 text-cyan-600 dark:hover:text-cyan-300 transition-colors border dark:border-cyan-500/30 border-cyan-500/20 dark:bg-cyan-500/10 bg-cyan-50 px-5 py-2.5 rounded-full dark:hover:bg-cyan-500/20 hover:bg-cyan-100"
