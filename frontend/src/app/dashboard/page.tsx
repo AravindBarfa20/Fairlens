@@ -36,7 +36,11 @@ export default function DashboardPage() {
       formData.append("file", uploadedFile);
 
       // 1. Call FastAPI Math Engine
-      const response = await fetch("http://127.0.0.1:8000/analyze", {
+      const apiUrl = process.env.NODE_ENV === "production" 
+        ? "/api/math/analyze" 
+        : "http://127.0.0.1:8000/analyze";
+
+      const response = await fetch(apiUrl, {
         method: "POST",
         body: formData,
       });
